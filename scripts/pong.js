@@ -44,8 +44,6 @@ var isKeyDown = false;
 window.addEventListener("keydown", function(event) {
 	if(Number(event.keyCode) == 38 || Number(event.keyCode) == 40 ) {
 		keysDown[event.keyCode] = true;
-		console.log(Number(event.keyCode));
-		console.log(isKeyDown);
 	}
 	else if(isKeyDown == false) {
 		keysDown[event.keyCode] = true;
@@ -60,12 +58,8 @@ window.addEventListener("keydown", function(event) {
 			activeIndex = activeIndex - 1;
 			active[activeIndex] = true;
 		}
-		
-		console.log(Number(event.keyCode))
-		console.log(isKeyDown);
 	}
-	else {}  
-
+	else {}
 });
 //adds listener for key up event
 //deleteskey from list
@@ -92,9 +86,9 @@ var step = function() {
 };
 
 var update = function() {
-	console.log("activeIndex " + activeIndex)
 	ball.update(); 
 	ball.hitPaddle(paddle1);
+	ball.hitPaddle(paddle2);
 	paddle1.update();
 	paddle2.update();
 
@@ -129,7 +123,8 @@ Paddle.prototype.render = function() {
 };
 
 Paddle.prototype.update = function() {
-	this.active == activeIndex[this.paddleNumber]
+	this.active = active[this.paddleNumber]
+
 	for(var key in keysDown) {
 		var value = Number(key);
 
