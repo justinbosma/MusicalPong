@@ -17,6 +17,10 @@ var right = false;
 var up = false;
 var down = false;
 
+//Keeps track of which paddle is active
+var active = [true, false, false, false, false];
+var activeIndex = 0;
+
 var wallOsc1;
 var wallOsc2 = audioContext.createOscillator();
 var wallOsc3 = audioContext.createOscillator();
@@ -27,13 +31,8 @@ var volume = audioContext.createGain();
 volume.gain.value = 0.1;
 
 
-wallOsc2.connect(volume);
-wallOsc3.connect(volume);
-wallOsc4.connect(volume);
-paddleOsc.connect(volume);
-volume.connect(audioContext.destination);
 
-var paddle1 = new Paddle(285, 175, 10, 100);
+var paddle1 = new Paddle(285, 175, 10, 100, active[0], 0, 220);
 var ball = new Ball(200, 200, 10, "#0000FF", 1, 5);
 //holds set of keys pressed
 var keysDown = {};
@@ -77,12 +76,16 @@ var render = function() {
   ball.render();
 };
 
-
-function Paddle(x, y, width, height) {
+//active: boolean -> if true, paddle is controlled by up/down
+function Paddle(x, y, width, height, active, paddleNumber, frequency) {
 	this.width = width;;
 	this.height = height;
 	this.x = x;
 	this.y = y;
+	this.active = active;
+	this.paddleNumber= paddleNumber;
+	this.frequency = frequency;
+
 	//this.color = color;
 
 }
@@ -94,14 +97,41 @@ Paddle.prototype.render = function() {
 
 Paddle.prototype.update = function() {
 	for(var key in keysDown) {
+		if(keysDown[0] == keysDown[1]) {
+			keysDown.splice(0, 1);
+		}
 		var value = Number(key);
-		if(value == 38) {//Up Key
+
+		if(value == 38 && this.active == true) {//Up Key
 			this.move(0, -5);
 		}
-		else if(value == 40) {//Down Key
+		else if(value == 40 && this.active == true) {//Down Key
 			this.move(0, 5);
 		}
+		else if(value == 37) {//left key
+			if(active[0] == true) {
+
+			}
+			else {
+				active[activeIndex] = false;
+				activeIndex = activeIndex - 1;
+				active[activeIndex] = true;
+				this.active = active[this.paddleNumber];
+			}
+		}
+		else if(value == 39) {//right key
+			if(active[5] == true) {
+
+			}
+			else {
+				active[activeIndex] = false;
+				activeIndex = activeIndex + 1;
+				active[activeIndex] = true;
+				this.active = active[this.paddleNumber];
+			}
+		}
 	}
+	console.log(activeIndex);
 };
 
 Paddle.prototype.move = function(x, y) {
@@ -211,25 +241,40 @@ Ball.prototype.update = function() {
 };
 
 Ball.prototype.hitPaddle = function(paddle) {
+	var hit = false;
 	//Left side of paddle
 	if(((this.x + 5) > paddle.x) && (this.x < (paddle.x + paddle.width)) && ((this.y + 5) > paddle.y) && (this.y + 5 < (paddle.y + paddle.height))) {
 		this.x = paddle.x - 5;
 		this.x_velocity = -this.x_velocity;
+		hit = true;
 	}
 	//right side of paddle
 	else if((this.x < (paddle.x + paddle.width - 5)) && (this.x > paddle.x) && ((this.y + 5) > paddle.y) && (this.y + 5 < (paddle.y + paddle.height))) {
 		this.x = paddle.x + paddle.width + 5;
 		this.x_velocity = -this.x_velocity;
+		hit = true;
 	}
 	else if((this.x > paddle.x - 5) && (this.x < paddle.x + paddle.width + 5) && (this.y > paddle.y) && (this.y < paddle.y + 5)) {
 		this.y = paddle.y - 5;
 		this.y_velocity = -this.y_velocity;
+		hit = true;
 
 	}
 	else if((this.x > paddle.x - 5) && (this.x < paddle.x + paddle.width + 5) && (this.y > paddle.y + paddle.height) && (this.y < paddle.y + paddle.height + 5)) {
 		this.y = paddle.y + paddle.height + 5;
 		this.y_velocity = -this.y_velocity;
+		hit = true;
 	}
+
+	if(hit == true) {
+		paddleOsc = audioContext.createOscillator();
+		paddleOsc.type = "sine";
+		paddleOsc.frequency.value = paddle.frequency;
+		paddleOsc.connect(volume);
+		paddleOsc.start()
+	}
+
+	volume.connect(audioContext.destination);
 };
 
 // need setInterval method to refresh image
