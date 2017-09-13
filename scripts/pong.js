@@ -33,18 +33,48 @@ volume.gain.value = 0.1;
 
 
 var paddle1 = new Paddle(285, 175, 10, 100, active[0], 0, 220);
+var paddle2 = new Paddle(500, 175, 10, 100, active[1], 1, 420);
 var ball = new Ball(200, 200, 10, "#0000FF", 1, 5);
 //holds set of keys pressed
 var keysDown = {};
+//flag for key down
+var isKeyDown = false;
 //adds listener for keydown event
 //adds key to list
 window.addEventListener("keydown", function(event) {
-  keysDown[event.keyCode] = true;
+	if(Number(event.keyCode) == 38 || Number(event.keyCode) == 40 ) {
+		keysDown[event.keyCode] = true;
+		console.log(Number(event.keyCode));
+		console.log(isKeyDown);
+	}
+	else if(isKeyDown == false) {
+		keysDown[event.keyCode] = true;
+		isKeyDown = true;
+		if(activeIndex < 5 && Number(event.keyCode == 39)) {
+			active[activeIndex] = false;
+			activeIndex = activeIndex + 1;
+			active[activeIndex] = true;	
+		}
+		else if(activeIndex > 0 && Number(event.keyCode == 37)) {
+			active[activeIndex] = false;
+			activeIndex = activeIndex - 1;
+			active[activeIndex] = true;
+		}
+		
+		console.log(Number(event.keyCode))
+		console.log(isKeyDown);
+	}
+	else {}  
+
 });
 //adds listener for key up event
 //deleteskey from list
 window.addEventListener("keyup", function(event) {
-  delete keysDown[event.keyCode];
+  
+  if(isKeyDown == true || Number(event.keyCode) == 38 || Number(event.keyCode) == 40) {
+  	delete keysDown[event.keyCode];
+  	isKeyDown = false;
+  }
 });
 
 window.onload = function() {
@@ -62,9 +92,11 @@ var step = function() {
 };
 
 var update = function() {
-	ball.update();
+	console.log("activeIndex " + activeIndex)
+	ball.update(); 
 	ball.hitPaddle(paddle1);
 	paddle1.update();
+	paddle2.update();
 
 	//need to update each paddle
 };
@@ -73,6 +105,7 @@ var render = function() {
   canvasContext.fillStyle = "#FF00FF";
   canvasContext.fillRect(0, 0, width, height);
   paddle1.render();
+  paddle2.render();
   ball.render();
 };
 
@@ -96,10 +129,8 @@ Paddle.prototype.render = function() {
 };
 
 Paddle.prototype.update = function() {
+	this.active == activeIndex[this.paddleNumber]
 	for(var key in keysDown) {
-		if(keysDown[0] == keysDown[1]) {
-			keysDown.splice(0, 1);
-		}
 		var value = Number(key);
 
 		if(value == 38 && this.active == true) {//Up Key
@@ -108,30 +139,7 @@ Paddle.prototype.update = function() {
 		else if(value == 40 && this.active == true) {//Down Key
 			this.move(0, 5);
 		}
-		else if(value == 37) {//left key
-			if(active[0] == true) {
-
-			}
-			else {
-				active[activeIndex] = false;
-				activeIndex = activeIndex - 1;
-				active[activeIndex] = true;
-				this.active = active[this.paddleNumber];
-			}
-		}
-		else if(value == 39) {//right key
-			if(active[5] == true) {
-
-			}
-			else {
-				active[activeIndex] = false;
-				activeIndex = activeIndex + 1;
-				active[activeIndex] = true;
-				this.active = active[this.paddleNumber];
-			}
-		}
 	}
-	console.log(activeIndex);
 };
 
 Paddle.prototype.move = function(x, y) {
