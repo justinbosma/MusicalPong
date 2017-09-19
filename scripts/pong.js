@@ -4,8 +4,8 @@ var animate = window.requestAnimationFrame ||
   window.mozRequestAnimationFrame ||
   function(callback) { window.setTimeout(callback, 1000/60) };
 var canvas = document.createElement('canvas');
-var width = 600;
-var height = 400;
+var width = 1000;
+var height = 1000;
 canvas.width = width;
 canvas.height = height;
 var canvasContext = canvas.getContext('2d');
@@ -21,19 +21,24 @@ var down = false;
 var active = [true, false, false, false, false];
 var activeIndex = 0;
 
-var wallOsc1;
-var wallOsc2 = audioContext.createOscillator();
-var wallOsc3 = audioContext.createOscillator();
-var wallOsc4 = audioContext.createOscillator();
-var paddleOsc = audioContext.createOscillator();
+var osc;
+var gain = audioContext.createGain();
+var reverb;
+var delay;
+var distortion = audioContext.createWaveShaper();
+var bandPassFilter = audioContext.createBiquadFilter
+var pan =  audioContext.createPanner();
 
 var volume = audioContext.createGain();
 volume.gain.value = 0.1;
 
 
 
-var paddle1 = new Paddle(285, 175, 10, 100, active[0], 0, 220);
-var paddle2 = new Paddle(500, 175, 10, 100, active[1], 1, 420);
+var paddle1 = new Paddle(100, 175, 10, 100, active[0], 0, 220);
+var paddle2 = new Paddle(300, 175, 10, 100, active[1], 1, 420);
+var paddle3 = new Paddle(500, 175, 10, 100, active[2], 2, 220);
+var paddle4 = new Paddle(700, 175, 10, 100, active[3], 3, 420);
+var paddle5 = new Paddle(900, 175, 10, 100, active[4], 4, 220);
 var ball = new Ball(200, 200, 10, "#0000FF", 1, 5);
 //holds set of keys pressed
 var keysDown = {};
@@ -89,8 +94,14 @@ var update = function() {
 	ball.update(); 
 	ball.hitPaddle(paddle1);
 	ball.hitPaddle(paddle2);
+	ball.hitPaddle(paddle3);
+	ball.hitPaddle(paddle4);
+	ball.hitPaddle(paddle5);
 	paddle1.update();
 	paddle2.update();
+	paddle3.update();
+	paddle4.update();
+	paddle5.update();
 
 	//need to update each paddle
 };
@@ -100,6 +111,9 @@ var render = function() {
   canvasContext.fillRect(0, 0, width, height);
   paddle1.render();
   paddle2.render();
+  paddle3.render();
+  paddle4.render();
+  paddle5.render();  
   ball.render();
 };
 
@@ -180,15 +194,11 @@ Ball.prototype.update = function() {
 		this.x = 5;
 		this.x_velocity = -this.x_velocity;
 		if(left == true) {
-			wallOsc1.stop();	
+
 			left = false;
 		}
 		else {
-			wallOsc1 = audioContext.createOscillator();
-			wallOsc1.type = "square";
-			wallOsc1.frequency.value = 220;
-			wallOsc1.connect(volume);
-			wallOsc1.start();
+
 			left = true;	
 		}
 		
@@ -197,15 +207,11 @@ Ball.prototype.update = function() {
 		this.x = width - 5;
 		this.x_velocity = -this.x_velocity;
 		if(right == true) {
-			wallOsc2.stop();	
+	
 			right = false;
 		}
 		else {
-			wallOsc2 = audioContext.createOscillator();
-			wallOsc2.type = "square";
-			wallOsc2.frequency.value = 300;
-			wallOsc2.connect(volume);
-			wallOsc2.start();
+
 			right = true;	
 		}
 	}
@@ -213,15 +219,10 @@ Ball.prototype.update = function() {
 		this.y = 5;
 		this.y_velocity = -this.y_velocity;
 		if(up == true) {
-			wallOsc3.stop();	
 			up = false;
 		}
 		else {
-			wallOsc3 = audioContext.createOscillator();
-			wallOsc3.type = "square";
-			wallOsc3.frequency.value = 100;
-			wallOsc3.connect(volume);
-			wallOsc3.start();
+
 			up = true;	
 		}
 	}
@@ -229,15 +230,11 @@ Ball.prototype.update = function() {
 		this.y = height - 5;
 		this.y_velocity = -this.y_velocity;
 		if(down == true) {
-			wallOsc4.stop();	
+
 			down = false;
 		}
 		else {
-			wallOsc4 = audioContext.createOscillator();
-			wallOsc4.type = "square";
-			wallOsc4.frequency.value = 420;
-			wallOsc4.connect(volume);
-			wallOsc4.start();
+
 			down = true;	
 		}
 	}
@@ -270,14 +267,10 @@ Ball.prototype.hitPaddle = function(paddle) {
 	}
 
 	if(hit == true) {
-		paddleOsc = audioContext.createOscillator();
-		paddleOsc.type = "sine";
-		paddleOsc.frequency.value = paddle.frequency;
-		paddleOsc.connect(volume);
-		paddleOsc.start()
+
 	}
 
-	volume.connect(audioContext.destination);
+
 };
 
 // need setInterval method to refresh image
